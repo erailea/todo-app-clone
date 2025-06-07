@@ -1,4 +1,4 @@
-package com.erailea.todo_app_clone;
+package com.erailea.todoappclone;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.erailea.todo_app_clone;
+package com.erailea.todoappclone;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
