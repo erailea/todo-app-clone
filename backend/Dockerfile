@@ -9,7 +9,6 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jdk-focal
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-COPY env.properties ./env.properties
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"] 
