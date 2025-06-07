@@ -11,7 +11,6 @@ import java.util.List;
 public class TodoListServiceImpl implements TodoListService {
     @Override
     public TodoList createList(String title, String userId) {
-        // Dummy implementation
         return new TodoList(
             "list-" + System.currentTimeMillis(),
             title,
@@ -22,7 +21,6 @@ public class TodoListServiceImpl implements TodoListService {
 
     @Override
     public List<TodoList> getLists(String userId) {
-        // Dummy implementation
         List<TodoList> lists = new ArrayList<>();
         lists.add(new TodoList("list-1", "Shopping List", LocalDateTime.now(), userId));
         lists.add(new TodoList("list-2", "Work Tasks", LocalDateTime.now(), userId));
@@ -30,18 +28,18 @@ public class TodoListServiceImpl implements TodoListService {
     }
 
     @Override
-    public TodoList updateListTitle(String id, String title) {
-        // Dummy implementation
+    public TodoList updateListTitle(String id, String title, String userId) {
+        // Mock implementation - in real implementation, verify ownership
         return new TodoList(
             id,
             title,
             LocalDateTime.now(),
-            "user-123"
+            userId
         );
     }
 
     @Override
-    public void deleteList(String id) {
-        // Dummy implementation - in real implementation, delete the list and its notes
+    public void deleteList(String id, String userId) {
+        // Mock implementation - in real implementation, verify ownership and delete
     }
 } 

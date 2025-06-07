@@ -10,8 +10,7 @@ import java.util.List;
 @Service
 public class NoteServiceImpl implements NoteService {
     @Override
-    public Note createNote(String content, String listId) {
-        // Dummy implementation
+    public Note createNote(String content, String listId, String userId) {
         return new Note(
             "note-" + System.currentTimeMillis(),
             content,
@@ -23,8 +22,7 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public List<Note> getNotesByListId(String listId) {
-        // Dummy implementation
+    public List<Note> getNotesByListId(String listId, String userId) {
         List<Note> notes = new ArrayList<>();
         notes.add(new Note("note-1", "Buy groceries", false, LocalDateTime.now(), LocalDateTime.now().plusDays(1), listId));
         notes.add(new Note("note-2", "Call mom", true, LocalDateTime.now(), LocalDateTime.now().plusDays(2), listId));
@@ -32,8 +30,8 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public Note getNoteById(String noteId) {
-        // Dummy implementation
+    public Note getNoteById(String noteId, String userId) {
+        // Mock implementation - in real implementation, verify ownership
         return new Note(
             noteId,
             "Sample note content",
@@ -45,8 +43,8 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public Note updateNote(String noteId, String content, Boolean done) {
-        // Dummy implementation
+    public Note updateNote(String noteId, String content, Boolean done, String userId) {
+        // Mock implementation - in real implementation, verify ownership
         return new Note(
             noteId,
             content != null ? content : "Sample note content",
@@ -58,7 +56,7 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
-    public void deleteNote(String noteId) {
-        // Dummy implementation - in real implementation, delete the note
+    public void deleteNote(String noteId, String userId) {
+        // Mock implementation - in real implementation, verify ownership and delete
     }
 } 
