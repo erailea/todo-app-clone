@@ -1,11 +1,14 @@
 package com.erailea.todoappclone.controller;
 
+import com.erailea.todoappclone.dto.request.CreateTodoListRequest;
+import com.erailea.todoappclone.dto.request.UpdateTodoListRequest;
 import com.erailea.todoappclone.model.TodoList;
 import com.erailea.todoappclone.security.UserContext;
 import com.erailea.todoappclone.service.TodoListService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,18 +32,18 @@ public class TodoListController {
 
     @PostMapping
     @Operation(summary = "Create a new todo list", description = "Creates a new todo list for the authenticated user")
-    public ResponseEntity<TodoList> createList(@RequestParam String title) {
+    public ResponseEntity<TodoList> createList(@Valid @RequestBody CreateTodoListRequest request) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(todoListService.createList(title, userId));
+        return ResponseEntity.ok(todoListService.createList(request.getTitle(), userId));
     }
 
     @PatchMapping("/{id}")
     @Operation(summary = "Update todo list title", description = "Updates the title of a specific todo list")
     public ResponseEntity<TodoList> updateListTitle(
             @PathVariable String id,
-            @RequestParam String title) {
+            @Valid @RequestBody UpdateTodoListRequest request) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(todoListService.updateListTitle(id, title, userId));
+        return ResponseEntity.ok(todoListService.updateListTitle(id, request.getTitle(), userId));
     }
 
     @DeleteMapping("/{id}")

@@ -1,0 +1,49 @@
+name: Main Branch Deployment
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run Tests
+        run: mvn test
+        working-directory: ./backend
+
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+        working-directory: ./backend
+
+      - name: Log in to Heroku Container Registry
+        run: echo "${{ secrets.HEROKU_API_KEY }}" | docker login --username=_ --password-stdin registry.heroku.com
+
+      - name: Build amd64-only image for Heroku
+        run: |
+          docker build --platform linux/amd64 -t registry.heroku.com/to-do-app-clone/web ./backend
+
+      - name: Push image to Heroku
+        run: |
+          docker push registry.heroku.com/to-do-app-clone/web
+
+      - name: Release image on Heroku
+        run: |
+          IMAGE_ID=$(docker inspect registry.heroku.com/to-do-app-clone/web --format={{.Id}})
+          curl -n -X PATCH https://api.heroku.com/apps/to-do-app-clone/formation \
+            -d "{\"updates\":[{\"type\":\"web\",\"docker_image\":\"${IMAGE_ID}\"}]}" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/vnd.heroku+json; version=3.docker-releases" \
+            -H "Authorization: Bearer ${{ secrets.HEROKU_API_KEY }}" 

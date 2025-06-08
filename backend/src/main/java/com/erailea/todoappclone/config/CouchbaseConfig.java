@@ -1,6 +1,5 @@
 package com.erailea.todoappclone.config;
 
-import com.couchbase.client.core.env.SecurityConfig;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.env.ClusterEnvironment;
 import org.springframework.context.annotation.Bean;
