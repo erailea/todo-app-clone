@@ -146,6 +146,14 @@ mvn test
 #### Frontend Tests (Coming Soon)
 Frontend test instructions will be added when the application is ready.
 
+## Code Coverage Report
+
+View the detailed code coverage report at: https://erailea.github.io/todo-app-clone/index.html
+
+## Live Demo
+
+The backend API is deployed and available at: https://to-do-app-clone-d8b4f8b698af.herokuapp.com/swagger-ui/index.html
+
 ## Troubleshooting
 
 ### Common Issues
