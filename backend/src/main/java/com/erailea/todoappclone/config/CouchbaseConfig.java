@@ -1,9 +1,14 @@
 package com.erailea.todoappclone.config;
 
+import com.couchbase.client.core.env.SecurityConfig;
+import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.env.ClusterEnvironment;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.couchbase.config.AbstractCouchbaseConfiguration;
 import org.springframework.data.couchbase.repository.config.EnableCouchbaseRepositories;
 import org.springframework.beans.factory.annotation.Value;
+
 
 @Configuration
 @EnableCouchbaseRepositories(basePackages = "com.erailea.todoappclone.repository")
@@ -40,4 +45,10 @@ public class CouchbaseConfig extends AbstractCouchbaseConfiguration {
     public String getBucketName() {
         return bucketName;
     }
-} 
+
+    @Override
+    @Bean(destroyMethod = "disconnect")
+    public Cluster couchbaseCluster(ClusterEnvironment couchbaseClusterEnvironment) {
+        return Cluster.connect(getConnectionString(), getUserName(), getPassword());
+    }
+}
