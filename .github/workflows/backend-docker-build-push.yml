@@ -1,4 +1,4 @@
-name: CI/CD – Build & Push & Deploy Backend 
+name: CI/CD – Build & Push & Deploy Backend
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   DOCKER_IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  build-and-push:
+  build-and-push-ghcr:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,7 +47,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push multi-arch image to GHCR
         uses: docker/build-push-action@v5
         with:
           context: ./backend
@@ -58,8 +58,9 @@ jobs:
             ghcr.io/${{ github.repository }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_IMAGE_TAG }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
   deploy-to-heroku:
-    needs: build-and-push
+    needs: build-and-push-ghcr
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
 
@@ -76,16 +77,13 @@ jobs:
       - name: Log in to Heroku Container Registry
         run: echo "${{ secrets.HEROKU_API_KEY }}" | docker login --username=_ --password-stdin registry.heroku.com
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Build amd64-only image for Heroku
+        run: |
+          docker build --platform linux/amd64 -t registry.heroku.com/to-do-app-clone/web ./backend
 
-      - name: Build and push Heroku-compatible image (linux/amd64 only)
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          platforms: linux/amd64
-          tags: registry.heroku.com/to-do-app-clone/web
+      - name: Push image to Heroku
+        run: |
+          docker push registry.heroku.com/to-do-app-clone/web
 
       - name: Release image on Heroku
         run: |
