@@ -107,3 +107,6 @@ temp/
 
 # Local development
 *.local 
+
+# Vite cache
+.vite
