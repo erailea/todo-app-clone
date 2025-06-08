@@ -76,6 +76,9 @@ Frontend setup instructions will be added when the application is ready.
 - Swagger API Documentation
 - Docker Support
 - Comprehensive Test Coverage
+- Global Exception Handling
+- Input Validation
+- Soft Delete Support
 
 ### Frontend (Coming Soon)
 - Modern UI Framework
@@ -94,20 +97,28 @@ Once the backend is running, you can access:
 
 #### Authentication
 - POST `/auth/register` - Register a new user
+  - Required fields: email, password (min 6 chars), fullName (2-100 chars)
 - POST `/auth/authenticate` - Authenticate a user
+  - Required fields: email, password
 
 #### Todo Lists
-- GET `/lists` - Get all todo lists
+- GET `/lists` - Get all todo lists for authenticated user
 - POST `/lists` - Create a new todo list
-- PATCH `/lists/{id}` - Update a todo list
-- DELETE `/lists/{id}` - Delete a todo list
+  - Required fields: title
+- PATCH `/lists/{id}` - Update a todo list title
+  - Required fields: title
+- DELETE `/lists/{id}` - Delete a todo list (soft delete)
+
+- GET `/lists/{id}/notes` - Get all notes in a list
+- POST `/lists/{id}/notes` - Create a new note
+  - Required fields: content
+  - Optional fields: dueDate
 
 #### Notes
-- GET `/lists/{listId}/notes` - Get all notes in a list
-- POST `/lists/{listId}/notes` - Create a new note
-- GET `/lists/{listId}/notes/{noteId}` - Get a specific note
-- PATCH `/lists/{listId}/notes/{noteId}` - Update a note
-- DELETE `/lists/{listId}/notes/{noteId}` - Delete a note
+- GET `/notes/{id}` - Get a specific note
+- PATCH `/notes/{id}` - Update a note
+  - Optional fields: content, done, dueDate, targetListId
+- DELETE `/notes/{id}` - Delete a note (soft delete)
 
 ## Development
 
@@ -142,6 +153,13 @@ Frontend environment setup instructions will be added when the application is re
 cd backend
 mvn test
 ```
+
+The backend includes comprehensive test coverage for:
+- Authentication Service
+- JWT Service
+- Todo List Service
+- Note Service
+- Global Exception Handling
 
 #### Frontend Tests (Coming Soon)
 Frontend test instructions will be added when the application is ready.
