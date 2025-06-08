@@ -33,16 +33,16 @@ jobs:
 
       - name: Build amd64-only image for Heroku
         run: |
-          docker build --platform linux/amd64 -t registry.heroku.com/to-do-app-clone/web ./backend
+          docker build --platform linux/amd64 -t registry.heroku.com/to-do-app-clone-be/web ./backend
 
       - name: Push image to Heroku
         run: |
-          docker push registry.heroku.com/to-do-app-clone/web
+          docker push registry.heroku.com/to-do-app-clone-be/web
 
       - name: Release image on Heroku
         run: |
-          IMAGE_ID=$(docker inspect registry.heroku.com/to-do-app-clone/web --format={{.Id}})
-          curl -n -X PATCH https://api.heroku.com/apps/to-do-app-clone/formation \
+          IMAGE_ID=$(docker inspect registry.heroku.com/to-do-app-clone-be/web --format={{.Id}})
+          curl -n -X PATCH https://api.heroku.com/apps/to-do-app-clone-be/formation \
             -d "{\"updates\":[{\"type\":\"web\",\"docker_image\":\"${IMAGE_ID}\"}]}" \
             -H "Content-Type: application/json" \
             -H "Accept: application/vnd.heroku+json; version=3.docker-releases" \
