@@ -7,62 +7,61 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/lists/{listId}/notes")
 @RequiredArgsConstructor
 @Tag(name = "Notes", description = "Note management APIs")
 @SecurityRequirement(name = "bearerAuth")
 public class NoteController {
     private final NoteService noteService;
 
-    @GetMapping
-    @Operation(summary = "Get all notes", description = "Retrieves all notes in a specific todo list")
-    public ResponseEntity<List<Note>> getNotes(@PathVariable String listId) {
+    @GetMapping("/lists/{id}/notes")
+    @Operation(summary = "Get all notes in a list", description = "Retrieves all notes in a specific todo list")
+    public ResponseEntity<List<Note>> getNotesByList(@PathVariable String id) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(noteService.getNotesByListId(listId, userId));
+        return ResponseEntity.ok(noteService.getNotesByListId(id, userId));
     }
 
-    @PostMapping
+    @PostMapping("/lists/{id}/notes")
     @Operation(summary = "Create a new note", description = "Creates a new note in a specific todo list")
     public ResponseEntity<Note> createNote(
-            @PathVariable String listId,
-            @RequestParam String content) {
+            @PathVariable String id,
+            @RequestParam String content,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(noteService.createNote(content, listId, userId));
+        return ResponseEntity.ok(noteService.createNote(content, id, dueDate, userId));
     }
 
-    @GetMapping("/{noteId}")
+    @GetMapping("/notes/{id}")
     @Operation(summary = "Get a specific note", description = "Retrieves a specific note by its ID")
-    public ResponseEntity<Note> getNote(
-            @PathVariable String listId,
-            @PathVariable String noteId) {
+    public ResponseEntity<Note> getNote(@PathVariable String id) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(noteService.getNoteById(noteId, userId));
+        return ResponseEntity.ok(noteService.getNoteById(id, userId));
     }
 
-    @PatchMapping("/{noteId}")
-    @Operation(summary = "Update note", description = "Updates a note's content and/or completion status")
+    @PatchMapping("/notes/{id}")
+    @Operation(summary = "Update note", description = "Updates a note's content, completion status, due date, and/or list")
     public ResponseEntity<Note> updateNote(
-            @PathVariable String listId,
-            @PathVariable String noteId,
+            @PathVariable String id,
             @RequestParam(required = false) String content,
-            @RequestParam(required = false) Boolean done) {
+            @RequestParam(required = false) Boolean done,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate,
+            @RequestParam(required = false) String targetListId) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(noteService.updateNote(noteId, content, done, userId));
+        return ResponseEntity.ok(noteService.updateNote(id, content, done, dueDate, targetListId, userId));
     }
 
-    @DeleteMapping("/{noteId}")
-    @Operation(summary = "Delete note", description = "Deletes a specific note from a todo list")
-    public ResponseEntity<Void> deleteNote(
-            @PathVariable String listId,
-            @PathVariable String noteId) {
+    @DeleteMapping("/notes/{id}")
+    @Operation(summary = "Delete note", description = "Soft deletes a specific note")
+    public ResponseEntity<Void> deleteNote(@PathVariable String id) {
         String userId = UserContext.getCurrentUserId();
-        noteService.deleteNote(noteId, userId);
+        noteService.deleteNote(id, userId);
         return ResponseEntity.ok().build();
     }
 } 
