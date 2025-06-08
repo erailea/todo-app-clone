@@ -3,6 +3,8 @@ package com.erailea.todoappclone.service.impl;
 import com.erailea.todoappclone.dto.request.AuthenticateRequest;
 import com.erailea.todoappclone.dto.request.RegisterRequest;
 import com.erailea.todoappclone.dto.response.AuthResponse;
+import com.erailea.todoappclone.exception.BusinessException;
+import com.erailea.todoappclone.exception.ResourceNotFoundException;
 import com.erailea.todoappclone.model.User;
 import com.erailea.todoappclone.repository.UserRepository;
 import com.erailea.todoappclone.service.AuthService;
@@ -24,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new BusinessException("EMAIL_EXISTS", "Email already exists");
         }
 
         User user = new User();
@@ -54,7 +56,7 @@ public class AuthServiceImpl implements AuthService {
         );
         
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
         
         String token = jwtService.generateToken(user.getEmail());
         

@@ -1,6 +1,5 @@
 package com.erailea.todoappclone.security;
 
-import com.erailea.todoappclone.model.User;
 import com.erailea.todoappclone.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

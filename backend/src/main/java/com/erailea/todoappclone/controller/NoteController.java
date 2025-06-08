@@ -1,17 +1,18 @@
 package com.erailea.todoappclone.controller;
 
+import com.erailea.todoappclone.dto.request.CreateNoteRequest;
+import com.erailea.todoappclone.dto.request.UpdateNoteRequest;
 import com.erailea.todoappclone.model.Note;
 import com.erailea.todoappclone.security.UserContext;
 import com.erailea.todoappclone.service.NoteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -32,10 +33,9 @@ public class NoteController {
     @Operation(summary = "Create a new note", description = "Creates a new note in a specific todo list")
     public ResponseEntity<Note> createNote(
             @PathVariable String id,
-            @RequestParam String content,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate) {
+            @Valid @RequestBody CreateNoteRequest request) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(noteService.createNote(content, id, dueDate, userId));
+        return ResponseEntity.ok(noteService.createNote(request, id, userId));
     }
 
     @GetMapping("/notes/{id}")
@@ -49,12 +49,9 @@ public class NoteController {
     @Operation(summary = "Update note", description = "Updates a note's content, completion status, due date, and/or list")
     public ResponseEntity<Note> updateNote(
             @PathVariable String id,
-            @RequestParam(required = false) String content,
-            @RequestParam(required = false) Boolean done,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate,
-            @RequestParam(required = false) String targetListId) {
+            @Valid @RequestBody UpdateNoteRequest request) {
         String userId = UserContext.getCurrentUserId();
-        return ResponseEntity.ok(noteService.updateNote(id, content, done, dueDate, targetListId, userId));
+        return ResponseEntity.ok(noteService.updateNote(id, request, userId));
     }
 
     @DeleteMapping("/notes/{id}")

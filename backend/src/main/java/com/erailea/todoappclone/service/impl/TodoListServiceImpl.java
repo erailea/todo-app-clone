@@ -1,5 +1,6 @@
 package com.erailea.todoappclone.service.impl;
 
+import com.erailea.todoappclone.exception.ResourceNotFoundException;
 import com.erailea.todoappclone.model.Note;
 import com.erailea.todoappclone.model.TodoList;
 import com.erailea.todoappclone.repository.TodoListRepository;
@@ -38,11 +39,11 @@ public class TodoListServiceImpl implements TodoListService {
     @Override
     public TodoList updateListTitle(String id, String title, String userId) {
         if (todoListRepository.countByIdAndUserIdAndNotDeleted(id, userId) == 0) {
-            throw new RuntimeException("List not found");
+            throw new ResourceNotFoundException("TodoList", "id", id);
         }
 
         TodoList list = todoListRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("List not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("TodoList", "id", id));
 
         list.setTitle(title);
         return todoListRepository.save(list);
@@ -51,11 +52,11 @@ public class TodoListServiceImpl implements TodoListService {
     @Override
     public void deleteList(String id, String userId) {
         if (todoListRepository.countByIdAndUserIdAndNotDeleted(id, userId) == 0) {
-            throw new RuntimeException("List not found");
+            throw new ResourceNotFoundException("TodoList", "id", id);
         }
 
         TodoList list = todoListRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("List not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("TodoList", "id", id));
 
         list.setDeletedAt(LocalDateTime.now());
         todoListRepository.save(list);
