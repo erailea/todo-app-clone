@@ -6,6 +6,7 @@ A full-stack Todo application built with Spring Boot and Vue.js.
 - [Frontend Application][frontend-url]
 - [API Documentation (Swagger UI)][swagger-url]
 - [API Base URL][api-url]
+- [GitHub Pages (Coverage Report)][github-pages-url]
 
 ## Quick Start
 
@@ -74,3 +75,4 @@ For more detailed information about each component, please refer to:
 [frontend-url]: https://to-do-app-clone-fe-9426774d4821.herokuapp.com/dashboard
 [swagger-url]: https://to-do-app-clone-be-ff03bad65820.herokuapp.com/swagger-ui/index.html
 [api-url]: https://to-do-app-clone-be-ff03bad65820.herokuapp.com
+[github-pages-url]: https://erailea.github.io/todo-app-clone/
