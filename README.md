@@ -1,13 +1,13 @@
 # Todo App Clone
 
-A full-stack Todo application built with Spring Boot and modern frontend technologies.
+A full-stack Todo application built with Spring Boot and Vue.js.
 
 ## Project Structure
 
 ```
 todo-app-clone/
 ├── backend/         # Spring Boot application
-└── frontend/        # Frontend application (coming soon)
+└── frontend/        # Vue.js application
 ```
 
 ## Quick Start
@@ -38,6 +38,7 @@ docker-compose up -d
 
 3. Access the applications:
 - Backend API: http://localhost:8080
+- Frontend: http://localhost:3000
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - Couchbase UI: http://localhost:8091
 
@@ -63,9 +64,25 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-#### Frontend (Coming Soon)
+#### Frontend
 
-Frontend setup instructions will be added when the application is ready.
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Copy environment file:
+```bash
+cp .env.example .env
+```
+
+3. Update the values in `.env` according to your environment.
+
+4. Install dependencies and run:
+```bash
+npm install
+npm run dev
+```
 
 ## Features
 
@@ -80,12 +97,39 @@ Frontend setup instructions will be added when the application is ready.
 - Input Validation
 - Soft Delete Support
 
-### Frontend (Coming Soon)
-- Modern UI Framework
+### Frontend
+- Vue.js 3 with Composition API
+- Vuex State Management
+- Vue Router for Navigation
+- Axios for HTTP Requests
+- JWT Token Authentication
 - Responsive Design
-- State Management
-- API Integration
-- User Authentication
+- Cookie-based Authentication Storage
+
+## Deployment
+
+### Heroku Deployment
+
+#### Frontend Deployment
+1. Create a new Heroku app:
+```bash
+heroku create your-app-name
+```
+
+2. Set environment variables:
+```bash
+heroku config:set VITE_API_BASE_URL=https://your-backend-url.herokuapp.com
+```
+
+3. Deploy:
+```bash
+git add .
+git commit -m "Deploy to Heroku"
+git push heroku main
+```
+
+#### Backend Deployment
+The backend is already deployed at: https://to-do-app-clone-be-ff03bad65820.herokuapp.com/
 
 ## Backend API Documentation
 
@@ -126,7 +170,7 @@ Once the backend is running, you can access:
 
 - Java 17 or higher
 - Maven 3.6 or higher
-- Node.js 18 or higher (for frontend)
+- Node.js 18 or higher
 - Docker and Docker Compose
 - Couchbase Server 7.x or higher
 
@@ -143,8 +187,14 @@ Once the backend is running, you can access:
    - JWT_EXPIRATION (default: 86400000)
    - SERVER_PORT (default: 8080)
 
-#### Frontend Environment (Coming Soon)
-Frontend environment setup instructions will be added when the application is ready.
+#### Frontend Environment
+1. Copy `frontend/.env.example` to `frontend/.env`
+2. Update the following variables:
+   - VITE_API_BASE_URL (default: http://localhost:8080)
+   - VITE_DEV_SERVER_PORT (default: 3000)
+   - VITE_DEV_SERVER_HOST (default: true)
+   - PORT (for Heroku deployment)
+   - NODE_ENV (for production builds)
 
 ### Running Tests
 
@@ -161,8 +211,11 @@ The backend includes comprehensive test coverage for:
 - Note Service
 - Global Exception Handling
 
-#### Frontend Tests (Coming Soon)
-Frontend test instructions will be added when the application is ready.
+#### Frontend Tests
+```bash
+cd frontend
+npm test
+```
 
 ## Code Coverage Report
 
@@ -170,7 +223,8 @@ View the detailed code coverage report at: https://erailea.github.io/todo-app-cl
 
 ## Live Demo
 
-The backend API is deployed and available at: https://to-do-app-clone-d8b4f8b698af.herokuapp.com/swagger-ui/index.html
+- Backend API: https://to-do-app-clone-be-ff03bad65820.herokuapp.com/swagger-ui/index.html
+- Frontend (coming soon): TBD
 
 ## Troubleshooting
 
@@ -183,8 +237,14 @@ The backend API is deployed and available at: https://to-do-app-clone-d8b4f8b698
 
 2. **Port Conflicts**
    - Change SERVER_PORT in env.properties if 8080 is in use
+   - Change VITE_DEV_SERVER_PORT in .env if 3000 is in use
 
 3. **Docker Issues**
    - Ensure Docker daemon is running
    - Check if ports are not in use
    - Verify Docker Compose installation
+
+4. **Frontend API Connection Issues**
+   - Verify VITE_API_BASE_URL is correct
+   - Check if backend is running
+   - Ensure CORS is properly configured
