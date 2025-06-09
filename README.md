@@ -35,12 +35,6 @@ cd backend
 mvn test
 ```
 
-#### Frontend Tests
-```bash
-cd frontend
-npm test
-```
-
 ## Documentation
 
 For more detailed information about each component, please refer to:
