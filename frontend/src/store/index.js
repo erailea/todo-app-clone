@@ -119,6 +119,36 @@ export default createStore({
         state.listNotes[listId] = state.listNotes[listId].filter(note => note.id !== noteId)
         // No need to re-sort after deletion
       }
+    },
+
+    // Drag-drop mutations
+    MOVE_NOTE_OPTIMISTIC(state, { fromListId, toListId, note }) {
+      // Remove from source list
+      if (state.listNotes[fromListId]) {
+        state.listNotes[fromListId] = state.listNotes[fromListId].filter(n => n.id !== note.id)
+      }
+      
+      // Add to target list (with updated listId)
+      if (!state.listNotes[toListId]) {
+        state.listNotes[toListId] = []
+      }
+      const updatedNote = { ...note, listId: toListId }
+      state.listNotes[toListId].push(updatedNote)
+      state.listNotes[toListId] = sortNotesByDueDate(state.listNotes[toListId])
+    },
+
+    ROLLBACK_NOTE_MOVE(state, { fromListId, toListId, note }) {
+      // Rollback: Remove from target list
+      if (state.listNotes[toListId]) {
+        state.listNotes[toListId] = state.listNotes[toListId].filter(n => n.id !== note.id)
+      }
+      
+      // Rollback: Add back to source list (with original listId)
+      if (!state.listNotes[fromListId]) {
+        state.listNotes[fromListId] = []
+      }
+      state.listNotes[fromListId].push(note)
+      state.listNotes[fromListId] = sortNotesByDueDate(state.listNotes[fromListId])
     }
   },
   
@@ -229,6 +259,27 @@ export default createStore({
         await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/notes/${noteId}`)
         commit('DELETE_NOTE_FROM_LIST', { listId, noteId })
       } catch (error) {
+        throw error
+      }
+    },
+
+    async moveNote({ commit }, { noteId, fromListId, toListId, note }) {
+      // Optimistic update
+      commit('MOVE_NOTE_OPTIMISTIC', { fromListId, toListId, note })
+      
+      try {
+        // API call to update note's listId
+        const response = await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notes/${noteId}`, {
+          targetListId: toListId
+        })
+        
+        // Update the note with response data in case backend modified anything
+        commit('UPDATE_NOTE_IN_LIST', { listId: toListId, note: response.data })
+        
+        return response.data
+      } catch (error) {
+        // Rollback on failure
+        commit('ROLLBACK_NOTE_MOVE', { fromListId, toListId, note })
         throw error
       }
     },

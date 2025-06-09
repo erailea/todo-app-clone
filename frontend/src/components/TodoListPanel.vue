@@ -45,21 +45,37 @@
         Loading notes...
       </div>
       
-      <div v-else-if="notes.length === 0" class="empty-notes">
-        <p>No notes in this list</p>
-        <button @click="showAddNote = true" class="add-first-note-btn">
-          Add your first note
-        </button>
-      </div>
-      
       <div v-else class="notes-list">
-        <NoteCard
-          v-for="note in notes"
-          :key="note.id"
-          :note="note"
-          @updated="handleNoteUpdated"
-          @deleted="handleNoteDeleted"
-        />
+        <draggable 
+          v-model="dragNotes" 
+          :group="{ name: 'notes', pull: true, put: true }"
+          :disabled="editingTitle || modalOpen"
+          handle=".drag-handle"
+          @start="onDragStart"
+          @end="onDragEnd"
+          item-key="id"
+          class="draggable-container"
+          :class="{ 'empty-list': notes.length === 0 }"
+        >
+          <template #item="{ element }">
+            <NoteCard
+              :key="element.id"
+              :note="element"
+              @updated="handleNoteUpdated"
+              @deleted="handleNoteDeleted"
+              @modal-opened="modalOpen = true"
+              @modal-closed="modalOpen = false"
+            />
+          </template>
+          
+          <!-- Empty state that still accepts drops -->
+          <div v-if="notes.length === 0" class="empty-drop-zone">
+            <p>No notes in this list</p>
+            <button @click="showAddNote = true" class="add-first-note-btn">
+              Add your first note
+            </button>
+          </div>
+        </draggable>
       </div>
     </div>
 
@@ -91,12 +107,14 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import axios from 'axios'
+import draggable from 'vuedraggable'
 import NoteCard from './NoteCard.vue'
 
 export default {
   name: 'TodoListPanel',
   components: {
-    NoteCard
+    NoteCard,
+    draggable
   },
   props: {
     list: {
@@ -111,17 +129,77 @@ export default {
       newNoteContent: '',
       newNoteDueDate: '',
       editingTitle: false,
-      editTitleValue: ''
+      editTitleValue: '',
+      draggedNote: null,
+      modalOpen: false
     }
   },
   computed: {
     ...mapGetters(['getListNotes']),
     notes() {
       return this.getListNotes(this.list.id)
+    },
+    dragNotes: {
+      get() {
+        return this.notes
+      },
+      set(value) {
+        // This will be handled by drag events
+      }
     }
   },
   methods: {
-    ...mapActions(['createNote', 'updateTodoList', 'fetchNotes']),
+    ...mapActions(['createNote', 'updateTodoList', 'fetchNotes', 'moveNote']),
+    
+    onDragStart(evt) {
+      this.draggedNote = this.notes[evt.oldIndex]
+    },
+    
+    async onDragEnd(evt) {
+      // Check if note was moved to a different list
+      if (evt.from !== evt.to) {
+        const note = this.draggedNote
+        const fromListId = this.list.id
+        
+        // Find the target list ID from the parent element
+        const toElement = evt.to.closest('.todo-list-panel')
+        const toListId = toElement?.dataset?.listId
+        
+        if (toListId && toListId !== fromListId) {
+          try {
+            await this.moveNote({
+              noteId: note.id,
+              fromListId,
+              toListId,
+              note
+            })
+            
+            // Show success message (optional)
+            this.$emit('note-moved', { 
+              note, 
+              fromListId, 
+              toListId,
+              success: true 
+            })
+          } catch (error) {
+            console.error('Error moving note:', error)
+            
+            // Show error message
+            alert('Failed to move note. Please try again.')
+            
+            this.$emit('note-moved', { 
+              note, 
+              fromListId, 
+              toListId,
+              success: false,
+              error 
+            })
+          }
+        }
+      }
+      
+      this.draggedNote = null
+    },
     
     async addNote() {
       if (!this.newNoteContent.trim()) return
@@ -208,6 +286,10 @@ export default {
     if (this.notes.length === 0) {
       this.fetchNotes(this.list.id)
     }
+  },
+  mounted() {
+    // Add data attribute for identifying the list during drag operations
+    this.$el.dataset.listId = this.list.id
   }
 }
 </script>
@@ -367,14 +449,41 @@ export default {
   color: #718096;
 }
 
-.empty-notes {
-  padding: 2rem;
-  text-align: center;
-  color: #718096;
+.notes-list {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 150px;
 }
 
-.empty-notes p {
+.draggable-container {
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.draggable-container.empty-list {
+  min-height: 150px;
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafbfc;
+}
+
+.empty-drop-zone {
+  text-align: center;
+  color: #718096;
+  padding: 2rem;
+}
+
+.empty-drop-zone p {
   margin-bottom: 1rem;
+  font-size: 0.875rem;
 }
 
 .add-first-note-btn {
@@ -393,11 +502,45 @@ export default {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.notes-list {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+/* Drag and drop styles */
+.sortable-ghost {
+  opacity: 0.5;
+  background: #f0f9ff;
+  border: 2px dashed #60a5fa;
+  border-radius: 12px;
+}
+
+.sortable-chosen {
+  transform: rotate(2deg);
+  box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.3);
+}
+
+.sortable-drag {
+  opacity: 0.8;
+  transform: rotate(5deg);
+  cursor: grabbing !important;
+}
+
+/* Drop zone styling */
+.draggable-container:not(.empty-list):hover {
+  background: rgba(96, 165, 250, 0.05);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.draggable-container.empty-list.sortable-drag-over {
+  background: rgba(96, 165, 250, 0.1);
+  border-color: #60a5fa;
+  border-style: solid;
+}
+
+/* Disable drag when editing */
+.todo-list-panel .draggable-container[disabled] {
+  pointer-events: none;
+}
+
+.todo-list-panel .draggable-container[disabled] .note-card {
+  pointer-events: auto;
 }
 
 .add-note-form {

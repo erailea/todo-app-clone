@@ -1,5 +1,22 @@
 <template>
-  <div class="note-card" :class="{ 'done': note.done }">
+  <div class="note-card" 
+       :class="{ 
+         'done': note.done,
+         'due-today': isDueToday && !note.done,
+         'overdue': isOverdue && !note.done
+       }">
+    <!-- Drag Handle -->
+    <div class="drag-handle" title="Drag to move">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="9" cy="12" r="1"/>
+        <circle cx="9" cy="5" r="1"/>
+        <circle cx="9" cy="19" r="1"/>
+        <circle cx="15" cy="12" r="1"/>
+        <circle cx="15" cy="5" r="1"/>
+        <circle cx="15" cy="19" r="1"/>
+      </svg>
+    </div>
+    
     <div class="note-content" @click="toggleDone">
       <div class="note-checkbox">
         <div v-if="note.done" class="checkmark">
@@ -13,7 +30,11 @@
         {{ note.content }}
       </div>
       
-      <div v-if="note.dueDate" class="note-due-date">
+      <div v-if="note.dueDate" class="note-due-date" 
+           :class="{
+             'due-today-badge': isDueToday && !note.done,
+             'overdue-badge': isOverdue && !note.done
+           }">
         {{ formatDate(note.dueDate) }}
       </div>
     </div>
@@ -87,6 +108,18 @@ export default {
       editDueDate: ''
     }
   },
+  computed: {
+    isDueToday() {
+      if (!this.note.dueDate) return false
+      const today = new Date().toISOString().split('T')[0]
+      return this.note.dueDate.split('T')[0] === today
+    },
+    isOverdue() {
+      if (!this.note.dueDate) return false
+      const today = new Date().toISOString().split('T')[0]
+      return new Date(this.note.dueDate.split('T')[0]) < new Date(today)
+    }
+  },
   methods: {
     ...mapActions(['updateNote', 'deleteNote']),
     
@@ -109,12 +142,14 @@ export default {
       this.editContent = this.note.content
       this.editDueDate = this.note.dueDate ? this.note.dueDate.split('T')[0] : ''
       this.showEditModal = true
+      this.$emit('modal-opened')
     },
     
     closeEditModal() {
       this.showEditModal = false
       this.editContent = ''
       this.editDueDate = ''
+      this.$emit('modal-closed')
     },
     
     async updateNoteContent() {
@@ -175,7 +210,7 @@ export default {
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   transition: all 0.2s;
-  cursor: pointer;
+  gap: 0.5rem;
 }
 
 .note-card:hover {
@@ -188,12 +223,60 @@ export default {
   border-color: #a0aec0;
 }
 
+/* Due date styling */
+.note-card.due-today {
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  border-color: #fbbf24;
+  border-left: 4px solid #fbbf24;
+}
+
+.note-card.overdue {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-color: #f87171;
+  border-left: 4px solid #f87171;
+}
+
+.note-card.due-today:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.15);
+}
+
+.note-card.overdue:hover {
+  border-color: #ef4444;
+  box-shadow: 0 4px 6px -1px rgba(248, 113, 113, 0.15);
+}
+
+.drag-handle {
+  color: #cbd5e0;
+  cursor: grab;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+  opacity: 0;
+  flex-shrink: 0;
+}
+
+.note-card:hover .drag-handle {
+  opacity: 1;
+  color: #a0aec0;
+}
+
+.drag-handle:hover {
+  background: #f7fafc;
+  color: #718096;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 .note-content {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex: 1;
   min-width: 0;
+  cursor: pointer;
 }
 
 .note-checkbox {
@@ -245,6 +328,21 @@ export default {
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.note-due-date.due-today-badge {
+  background: #fde047;
+  color: #a16207;
+  font-weight: 500;
+}
+
+.note-due-date.overdue-badge {
+  background: #fca5a5;
+  color: #b91c1c;
+  font-weight: 500;
 }
 
 .note-actions {
