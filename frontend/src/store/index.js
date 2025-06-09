@@ -2,7 +2,7 @@ import { createStore } from 'vuex'
 import axios from 'axios'
 import { getToken, setToken, removeToken } from '../utils/auth'
 
-const API_BASE_URL = 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 // Setup axios default authorization header
 const token = getToken()

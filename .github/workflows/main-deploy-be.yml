@@ -1,8 +1,11 @@
-name: Main Branch Deployment
+name: Backend Deployment
 
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/main-deploy-be.yml'
   workflow_dispatch:
 
 jobs:
