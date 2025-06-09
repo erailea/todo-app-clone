@@ -5,8 +5,8 @@ import com.erailea.todoappclone.exception.ResourceNotFoundException;
 import com.erailea.todoappclone.mapper.TodoListMapper;
 import com.erailea.todoappclone.model.Note;
 import com.erailea.todoappclone.model.TodoList;
-import com.erailea.todoappclone.repository.TodoListRepository;
 import com.erailea.todoappclone.repository.NoteRepository;
+import com.erailea.todoappclone.repository.TodoListRepository;
 import com.erailea.todoappclone.service.TodoListService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -62,14 +62,14 @@ public class TodoListServiceImpl implements TodoListService {
         // Map to response DTOs
         return todoLists.stream().map(todoList -> {
             List<Note> notes = notesByListId.getOrDefault(todoList.getId(), Collections.emptyList());
-            
+
             // Sort notes by dueDate (null values last) and then by createdAt
             List<Note> sortedNotes = notes.stream()
-                .sorted(Comparator
-                    .<Note, LocalDateTime>comparing(Note::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
-                    .thenComparing(Note::getCreatedAt))
-                .collect(Collectors.toList());
-                
+                    .sorted(Comparator
+                            .<Note, LocalDateTime>comparing(Note::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                            .thenComparing(Note::getCreatedAt))
+                    .collect(Collectors.toList());
+
             return todoListMapper.toResponse(todoList, sortedNotes);
         }).collect(Collectors.toList());
     }

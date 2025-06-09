@@ -23,13 +23,13 @@ public class UserContextFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             String email = ((UserDetails) authentication.getPrincipal()).getUsername();
             userRepository.findByEmail(email)
                     .ifPresent(user -> request.setAttribute("currentUser", user));
         }
-        
+
         filterChain.doFilter(request, response);
     }
 } 

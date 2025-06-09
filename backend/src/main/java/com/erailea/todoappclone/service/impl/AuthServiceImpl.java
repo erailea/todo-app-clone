@@ -37,34 +37,34 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         String token = jwtService.generateToken(user.getEmail());
-        
+
         return new AuthResponse(
-            token,
-            user.getId(),
-            user.getEmail(),
-            user.getFullName()
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getFullName()
         );
     }
 
     @Override
     public AuthResponse authenticate(AuthenticateRequest request) {
         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                request.getEmail(),
-                request.getPassword()
-            )
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
         );
-        
+
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", request.getEmail()));
-        
+
         String token = jwtService.generateToken(user.getEmail());
-        
+
         return new AuthResponse(
-            token,
-            user.getId(),
-            user.getEmail(),
-            user.getFullName()
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getFullName()
         );
     }
 } 

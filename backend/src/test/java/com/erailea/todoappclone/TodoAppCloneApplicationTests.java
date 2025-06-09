@@ -9,9 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @EnabledIfEnvironmentVariable(named = "RUN_FULL_TESTS", matches = "true")
 class TodoAppCloneApplicationTests {
 
-	@Test
-	void contextLoads() {
-		Assertions.assertTrue(true, "Context loads successfully");
-	}
+    @Test
+    void contextLoads() {
+        Assertions.assertTrue(true, "Context loads successfully");
+    }
 
 }

@@ -9,7 +9,6 @@ import com.erailea.todoappclone.model.TodoList;
 import com.erailea.todoappclone.repository.NoteRepository;
 import com.erailea.todoappclone.repository.TodoListRepository;
 import com.erailea.todoappclone.service.impl.TodoListServiceImpl;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -68,15 +67,15 @@ class TodoListServiceTest {
         @DisplayName("Should return all lists for user")
         void shouldReturnAllListsForUser() {
             TodoList testList = TestFixtures.createTestTodoList();
-            List<TodoList> todoLists = Arrays.asList(testList);
+            List<TodoList> todoLists = List.of(testList);
             List<Note> notes = Collections.emptyList();
             TodoListResponse expectedResponse = new TodoListResponse();
             expectedResponse.setId(testList.getId());
             expectedResponse.setTitle(testList.getTitle());
-            
+
             when(todoListRepository.findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(TestFixtures.TEST_USER_ID))
                     .thenReturn(todoLists);
-            when(noteRepository.findAllByListIdInAndDeletedAtIsNull(Arrays.asList(testList.getId())))
+            when(noteRepository.findAllByListIdInAndDeletedAtIsNull(Collections.singletonList(testList.getId())))
                     .thenReturn(notes);
             when(todoListMapper.toResponse(testList, notes))
                     .thenReturn(expectedResponse);
@@ -87,7 +86,7 @@ class TodoListServiceTest {
             assertEquals(1, result.size());
             assertEquals(expectedResponse.getTitle(), result.get(0).getTitle());
             verify(todoListRepository).findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(TestFixtures.TEST_USER_ID);
-            verify(noteRepository).findAllByListIdInAndDeletedAtIsNull(Arrays.asList(testList.getId()));
+            verify(noteRepository).findAllByListIdInAndDeletedAtIsNull(Collections.singletonList(testList.getId()));
             verify(todoListMapper).toResponse(testList, notes);
         }
 
@@ -146,7 +145,7 @@ class TodoListServiceTest {
         @DisplayName("Should delete list and its notes successfully when list exists and belongs to user")
         void shouldDeleteListAndNotesSuccessfully() {
             TodoList existingList = TestFixtures.createTestTodoList();
-            List<Note> existingNotes = Arrays.asList(TestFixtures.createTestNote());
+            List<Note> existingNotes = List.of(TestFixtures.createTestNote());
             when(todoListRepository.countByIdAndUserIdAndNotDeleted(TestFixtures.TEST_LIST_ID, TestFixtures.TEST_USER_ID))
                     .thenReturn(1L);
             when(todoListRepository.findById(TestFixtures.TEST_LIST_ID))

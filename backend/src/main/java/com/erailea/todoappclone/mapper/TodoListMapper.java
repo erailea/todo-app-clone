@@ -12,13 +12,13 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface TodoListMapper {
-    
+
     TodoListMapper INSTANCE = Mappers.getMapper(TodoListMapper.class);
-    
+
     @Mapping(target = "notes", source = "notes")
     TodoListResponse toResponse(TodoList todoList, List<Note> notes);
-    
+
     NoteResponse toResponse(Note note);
-    
+
     List<NoteResponse> toNoteResponseList(List<Note> notes);
 } 

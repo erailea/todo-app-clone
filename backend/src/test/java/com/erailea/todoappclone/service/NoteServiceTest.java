@@ -23,7 +23,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class NoteServiceTest {
@@ -81,7 +82,7 @@ class NoteServiceTest {
         @Test
         @DisplayName("Should return notes when list exists and belongs to user")
         void shouldReturnNotesWhenListExists() {
-            List<Note> expectedNotes = Arrays.asList(TestFixtures.createTestNote());
+            List<Note> expectedNotes = List.of(TestFixtures.createTestNote());
             when(todoListRepository.countByIdAndUserIdAndNotDeleted(TestFixtures.TEST_LIST_ID, TestFixtures.TEST_USER_ID))
                     .thenReturn(1L);
             when(noteRepository.findAllByListIdAndDeletedAtIsNullOrderByDueDate(TestFixtures.TEST_LIST_ID))

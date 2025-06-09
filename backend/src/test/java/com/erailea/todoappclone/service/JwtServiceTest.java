@@ -21,11 +21,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(MockitoExtension.class)
 class JwtServiceTest {
 
-    @InjectMocks
-    private JwtServiceImpl jwtService;
-
     private static final String TEST_SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
     private static final long TEST_EXPIRATION = 86400000; // 24 hours in milliseconds
+    @InjectMocks
+    private JwtServiceImpl jwtService;
 
     @BeforeEach
     void setUp() {
@@ -42,7 +41,7 @@ class JwtServiceTest {
             String token = jwtService.generateToken(TestFixtures.TEST_USER_EMAIL);
 
             assertNotNull(token);
-            assertTrue(token.split("\\.").length == 3); // JWT has 3 parts
+            assertEquals(3, token.split("\\.").length); // JWT has 3 parts
             assertEquals(TestFixtures.TEST_USER_EMAIL, jwtService.extractUsername(token));
         }
 
@@ -55,7 +54,7 @@ class JwtServiceTest {
             String token = jwtService.generateToken(extraClaims, TestFixtures.TEST_USER_EMAIL);
 
             assertNotNull(token);
-            assertTrue(token.split("\\.").length == 3);
+            assertEquals(3, token.split("\\.").length);
             assertEquals(TestFixtures.TEST_USER_EMAIL, jwtService.extractUsername(token));
         }
     }

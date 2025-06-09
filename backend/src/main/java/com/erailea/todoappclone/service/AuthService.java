@@ -6,5 +6,6 @@ import com.erailea.todoappclone.dto.response.AuthResponse;
 
 public interface AuthService {
     AuthResponse register(RegisterRequest request);
+
     AuthResponse authenticate(AuthenticateRequest request);
 } 
