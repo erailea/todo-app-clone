@@ -16,6 +16,15 @@ services:
     depends_on:
       - couchbase
 
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_BASE_URL=http://localhost:8080
+    depends_on:
+      - backend 
+
   couchbase:
     image: couchbase:community
     ports:

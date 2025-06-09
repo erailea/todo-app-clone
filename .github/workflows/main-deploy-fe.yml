@@ -27,17 +27,31 @@ jobs:
         run: npm ci
         working-directory: ./frontend
 
-      - name: Build project
-        run: npm run build
-        working-directory: ./frontend
-        env:
-          VITE_API_BASE_URL: https://to-do-app-clone-be-ff03bad65820.herokuapp.com
+      - name: Log in to Heroku Container Registry
+        run: echo "${{ secrets.HEROKU_API_KEY }}" | docker login --username=_ --password-stdin registry.heroku.com
 
-      - name: Deploy to Heroku
-        uses: akhileshns/heroku-deploy@v3.12.14
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: "to-do-app-clone-fe"
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          appdir: "frontend"
-          buildpack: "heroku/nodejs" 
+      - name: Build Docker image for Heroku
+        run: |
+          docker build --platform linux/amd64 \
+            -t registry.heroku.com/to-do-app-clone-fe/web ./frontend
+
+      - name: Push image to Heroku
+        run: |
+          docker push registry.heroku.com/to-do-app-clone-fe/web
+
+      - name: Set Heroku environment variables
+        run: |
+          curl -n -X PATCH https://api.heroku.com/apps/to-do-app-clone-fe/config-vars \
+            -d '{"API_BASE_URL":"https://to-do-app-clone-be-ff03bad65820.herokuapp.com"}' \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/vnd.heroku+json; version=3" \
+            -H "Authorization: Bearer ${{ secrets.HEROKU_API_KEY }}"
+
+      - name: Release image on Heroku
+        run: |
+          IMAGE_ID=$(docker inspect registry.heroku.com/to-do-app-clone-fe/web --format={{.Id}})
+          curl -n -X PATCH https://api.heroku.com/apps/to-do-app-clone-fe/formation \
+            -d "{\"updates\":[{\"type\":\"web\",\"docker_image\":\"${IMAGE_ID}\"}]}" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/vnd.heroku+json; version=3.docker-releases" \
+            -H "Authorization: Bearer ${{ secrets.HEROKU_API_KEY }}" 

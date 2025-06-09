@@ -110,22 +110,34 @@ npm run dev
 
 ### Heroku Deployment
 
-#### Frontend Deployment
-1. Create a new Heroku app:
+#### Frontend Deployment (Docker)
+
+The frontend is deployed using Docker containers for better flexibility and consistency.
+
+**Key Features:**
+- **Runtime Environment Configuration**: Same Docker image can be used across different environments
+- **Multi-stage Build**: Optimized production build with Nginx
+- **Dynamic Configuration**: API URL can be set at runtime via environment variables
+
+**Environment Variables:**
 ```bash
-heroku create your-app-name
+# Set API URL at runtime
+heroku config:set API_BASE_URL=https://your-backend-url.herokuapp.com
+
+# Optional: Set custom port (Heroku sets this automatically)
+heroku config:set PORT=8080
 ```
 
-2. Set environment variables:
+**Local Docker Development:**
 ```bash
-heroku config:set VITE_API_BASE_URL=https://your-backend-url.herokuapp.com
-```
+# Build the Docker image
+docker build -t todo-frontend ./frontend
 
-3. Deploy:
-```bash
-git add .
-git commit -m "Deploy to Heroku"
-git push heroku main
+# Run with custom API URL
+docker run -p 3000:80 -e API_BASE_URL=http://localhost:8080 todo-frontend
+
+# Run with different environment
+docker run -p 3000:80 -e API_BASE_URL=https://staging-api.example.com todo-frontend
 ```
 
 #### Backend Deployment
@@ -210,12 +222,6 @@ The backend includes comprehensive test coverage for:
 - Todo List Service
 - Note Service
 - Global Exception Handling
-
-#### Frontend Tests
-```bash
-cd frontend
-npm test
-```
 
 ## Code Coverage Report
 
