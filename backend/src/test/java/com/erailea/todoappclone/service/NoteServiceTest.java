@@ -84,7 +84,7 @@ class NoteServiceTest {
             List<Note> expectedNotes = Arrays.asList(TestFixtures.createTestNote());
             when(todoListRepository.countByIdAndUserIdAndNotDeleted(TestFixtures.TEST_LIST_ID, TestFixtures.TEST_USER_ID))
                     .thenReturn(1L);
-            when(noteRepository.findAllByListIdAndDeletedAtIsNull(TestFixtures.TEST_LIST_ID))
+            when(noteRepository.findAllByListIdAndDeletedAtIsNullOrderByDueDate(TestFixtures.TEST_LIST_ID))
                     .thenReturn(expectedNotes);
 
             List<Note> result = noteService.getNotesByListId(TestFixtures.TEST_LIST_ID, TestFixtures.TEST_USER_ID);

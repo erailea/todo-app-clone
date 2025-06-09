@@ -1,6 +1,8 @@
 package com.erailea.todoappclone.service.impl;
 
+import com.erailea.todoappclone.dto.response.TodoListResponse;
 import com.erailea.todoappclone.exception.ResourceNotFoundException;
+import com.erailea.todoappclone.mapper.TodoListMapper;
 import com.erailea.todoappclone.model.Note;
 import com.erailea.todoappclone.model.TodoList;
 import com.erailea.todoappclone.repository.TodoListRepository;
@@ -10,13 +12,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TodoListServiceImpl implements TodoListService {
     private final TodoListRepository todoListRepository;
     private final NoteRepository noteRepository;
+    private final TodoListMapper todoListMapper;
 
     @Override
     public TodoList createList(String title, String userId) {
@@ -32,8 +39,39 @@ public class TodoListServiceImpl implements TodoListService {
     }
 
     @Override
-    public List<TodoList> getLists(String userId) {
-        return todoListRepository.findAllByUserIdAndDeletedAtIsNull(userId);
+    public List<TodoListResponse> getLists(String userId) {
+        // Fetch all todo lists (1 query)
+        List<TodoList> todoLists = todoListRepository.findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId);
+
+        if (todoLists.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Extract all list IDs
+        List<String> listIds = todoLists.stream()
+                .map(TodoList::getId)
+                .collect(Collectors.toList());
+
+        // Fetch all notes for all lists in a single query (1 query)
+        List<Note> allNotes = noteRepository.findAllByListIdInAndDeletedAtIsNull(listIds);
+
+        // Group notes by listId ordered by dueDate
+        Map<String, List<Note>> notesByListId = allNotes.stream()
+                .collect(Collectors.groupingBy(Note::getListId));
+
+        // Map to response DTOs
+        return todoLists.stream().map(todoList -> {
+            List<Note> notes = notesByListId.getOrDefault(todoList.getId(), Collections.emptyList());
+            
+            // Sort notes by dueDate (null values last) and then by createdAt
+            List<Note> sortedNotes = notes.stream()
+                .sorted(Comparator
+                    .<Note, LocalDateTime>comparing(Note::getDueDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(Note::getCreatedAt))
+                .collect(Collectors.toList());
+                
+            return todoListMapper.toResponse(todoList, sortedNotes);
+        }).collect(Collectors.toList());
     }
 
     @Override

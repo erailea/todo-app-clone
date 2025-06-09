@@ -2,6 +2,7 @@ package com.erailea.todoappclone.controller;
 
 import com.erailea.todoappclone.dto.request.CreateTodoListRequest;
 import com.erailea.todoappclone.dto.request.UpdateTodoListRequest;
+import com.erailea.todoappclone.dto.response.TodoListResponse;
 import com.erailea.todoappclone.model.TodoList;
 import com.erailea.todoappclone.security.UserContext;
 import com.erailea.todoappclone.service.TodoListService;
@@ -24,8 +25,8 @@ public class TodoListController {
     private final TodoListService todoListService;
 
     @GetMapping
-    @Operation(summary = "Get all todo lists", description = "Retrieves all todo lists for the authenticated user")
-    public ResponseEntity<List<TodoList>> getLists() {
+    @Operation(summary = "Get all todo lists with notes", description = "Retrieves all todo lists with their notes for the authenticated user")
+    public ResponseEntity<List<TodoListResponse>> getLists() {
         String userId = UserContext.getCurrentUserId();
         return ResponseEntity.ok(todoListService.getLists(userId));
     }

@@ -45,7 +45,7 @@ public class NoteServiceImpl implements NoteService {
             throw new ResourceNotFoundException("TodoList", "id", listId);
         }
 
-        return noteRepository.findAllByListIdAndDeletedAtIsNull(listId);
+        return noteRepository.findAllByListIdAndDeletedAtIsNullOrderByDueDate(listId);
     }
 
     @Override

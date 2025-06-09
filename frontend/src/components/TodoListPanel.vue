@@ -1,7 +1,29 @@
 <template>
   <div class="todo-list-panel">
     <div class="panel-header">
-      <h3 class="list-title">{{ list.title }}</h3>
+      <div v-if="!editingTitle" class="list-title-container">
+        <h3 class="list-title" @click="startEditTitle">{{ list.title }}</h3>
+        <button @click="startEditTitle" class="edit-title-btn" title="Edit Title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </button>
+      </div>
+      <div v-else class="title-edit-container">
+        <input
+          v-model="editTitleValue"
+          @blur="saveTitle"
+          @keyup.enter="saveTitle"
+          @keyup.escape="cancelEditTitle"
+          class="title-input"
+          autofocus
+        />
+        <div class="title-edit-actions">
+          <button @click="saveTitle" class="save-title-btn" title="Save">✓</button>
+          <button @click="cancelEditTitle" class="cancel-title-btn" title="Cancel">✕</button>
+        </div>
+      </div>
       <div class="panel-actions">
         <button @click="showAddNote = true" class="add-note-btn" title="Add Note">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -35,8 +57,8 @@
           v-for="note in notes"
           :key="note.id"
           :note="note"
-          @updated="loadNotes"
-          @deleted="loadNotes"
+          @updated="handleNoteUpdated"
+          @deleted="handleNoteDeleted"
         />
       </div>
     </div>
@@ -51,6 +73,12 @@
           required
           autofocus
         />
+        <input
+          v-model="newNoteDueDate"
+          type="date"
+          class="date-input"
+          placeholder="Due date (optional)"
+        />
         <div class="form-actions">
           <button type="button" @click="cancelAddNote" class="cancel-btn">Cancel</button>
           <button type="submit" class="add-btn" :disabled="!newNoteContent.trim()">Add</button>
@@ -61,6 +89,7 @@
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
 import axios from 'axios'
 import NoteCard from './NoteCard.vue'
 
@@ -77,37 +106,38 @@ export default {
   },
   data() {
     return {
-      notes: [],
       loading: false,
       showAddNote: false,
-      newNoteContent: ''
+      newNoteContent: '',
+      newNoteDueDate: '',
+      editingTitle: false,
+      editTitleValue: ''
+    }
+  },
+  computed: {
+    ...mapGetters(['getListNotes']),
+    notes() {
+      return this.getListNotes(this.list.id)
     }
   },
   methods: {
-    async loadNotes() {
-      this.loading = true
-      try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/lists/${this.list.id}/notes`)
-        this.notes = response.data
-      } catch (error) {
-        console.error('Error loading notes:', error)
-        this.notes = []
-      } finally {
-        this.loading = false
-      }
-    },
+    ...mapActions(['createNote', 'updateTodoList', 'fetchNotes']),
     
     async addNote() {
       if (!this.newNoteContent.trim()) return
       
       try {
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/lists/${this.list.id}/notes`, {
-          content: this.newNoteContent.trim()
+        await this.createNote({
+          listId: this.list.id,
+          noteData: {
+            content: this.newNoteContent.trim(),
+            dueDate: this.newNoteDueDate ? new Date(this.newNoteDueDate).toISOString() : null
+          }
         })
         
         this.newNoteContent = ''
+        this.newNoteDueDate = ''
         this.showAddNote = false
-        await this.loadNotes()
       } catch (error) {
         console.error('Error adding note:', error)
         alert('Failed to add note. Please try again.')
@@ -117,6 +147,7 @@ export default {
     cancelAddNote() {
       this.showAddNote = false
       this.newNoteContent = ''
+      this.newNoteDueDate = ''
     },
     
     async deleteList() {
@@ -131,10 +162,52 @@ export default {
         console.error('Error deleting list:', error)
         alert('Failed to delete list. Please try again.')
       }
+    },
+    
+    startEditTitle() {
+      this.editingTitle = true
+      this.editTitleValue = this.list.title
+    },
+    
+    async saveTitle() {
+      if (!this.editTitleValue.trim()) {
+        this.cancelEditTitle()
+        return
+      }
+      
+      try {
+        await this.updateTodoList({
+          id: this.list.id,
+          title: this.editTitleValue.trim()
+        })
+        this.editingTitle = false
+      } catch (error) {
+        console.error('Error updating list title:', error)
+        alert('Failed to update list title. Please try again.')
+        this.cancelEditTitle()
+      }
+    },
+    
+    cancelEditTitle() {
+      this.editingTitle = false
+    },
+
+    handleNoteUpdated() {
+      // Note is already updated via store actions in NoteCard
+      // No need to refresh anything
+    },
+
+    handleNoteDeleted() {
+      // Note is already deleted via store actions in NoteCard  
+      // No need to refresh anything
     }
   },
-  mounted() {
-    this.loadNotes()
+  created() {
+    // Notes are already loaded from the initial fetch
+    // No need to load them again unless they're missing
+    if (this.notes.length === 0) {
+      this.fetchNotes(this.list.id)
+    }
   }
 }
 </script>
@@ -160,11 +233,89 @@ export default {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
+.list-title-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .list-title {
   font-size: 1.125rem;
   font-weight: 600;
   color: #1a202c;
   margin: 0;
+}
+
+.edit-title-btn {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f9ff;
+  color: #0369a1;
+}
+
+.edit-title-btn:hover {
+  background: #e0f2fe;
+  color: #0c4a6e;
+}
+
+.title-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.title-input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.title-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.title-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-title-btn, .cancel-title-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.save-title-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+}
+
+.save-title-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.cancel-title-btn {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  color: #718096;
+}
+
+.cancel-title-btn:hover {
+  background: #edf2f7;
 }
 
 .panel-actions {
@@ -272,6 +423,11 @@ export default {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.date-input {
+  margin-top: 0.5rem;
+  color: #374151;
 }
 
 .form-actions {

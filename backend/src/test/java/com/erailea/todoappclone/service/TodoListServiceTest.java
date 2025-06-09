@@ -1,7 +1,9 @@
 package com.erailea.todoappclone.service;
 
+import com.erailea.todoappclone.dto.response.TodoListResponse;
 import com.erailea.todoappclone.exception.ResourceNotFoundException;
 import com.erailea.todoappclone.fixture.TestFixtures;
+import com.erailea.todoappclone.mapper.TodoListMapper;
 import com.erailea.todoappclone.model.Note;
 import com.erailea.todoappclone.model.TodoList;
 import com.erailea.todoappclone.repository.NoteRepository;
@@ -17,11 +19,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +36,9 @@ class TodoListServiceTest {
 
     @Mock
     private NoteRepository noteRepository;
+
+    @Mock
+    private TodoListMapper todoListMapper;
 
     @InjectMocks
     private TodoListServiceImpl todoListService;
@@ -60,15 +67,44 @@ class TodoListServiceTest {
         @Test
         @DisplayName("Should return all lists for user")
         void shouldReturnAllListsForUser() {
-            List<TodoList> expectedLists = Arrays.asList(TestFixtures.createTestTodoList());
-            when(todoListRepository.findAllByUserIdAndDeletedAtIsNull(TestFixtures.TEST_USER_ID))
-                    .thenReturn(expectedLists);
+            TodoList testList = TestFixtures.createTestTodoList();
+            List<TodoList> todoLists = Arrays.asList(testList);
+            List<Note> notes = Collections.emptyList();
+            TodoListResponse expectedResponse = new TodoListResponse();
+            expectedResponse.setId(testList.getId());
+            expectedResponse.setTitle(testList.getTitle());
+            
+            when(todoListRepository.findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(TestFixtures.TEST_USER_ID))
+                    .thenReturn(todoLists);
+            when(noteRepository.findAllByListIdInAndDeletedAtIsNull(Arrays.asList(testList.getId())))
+                    .thenReturn(notes);
+            when(todoListMapper.toResponse(testList, notes))
+                    .thenReturn(expectedResponse);
 
-            List<TodoList> result = todoListService.getLists(TestFixtures.TEST_USER_ID);
+            List<TodoListResponse> result = todoListService.getLists(TestFixtures.TEST_USER_ID);
 
             assertNotNull(result);
-            assertEquals(expectedLists.size(), result.size());
-            assertEquals(expectedLists.get(0).getTitle(), result.get(0).getTitle());
+            assertEquals(1, result.size());
+            assertEquals(expectedResponse.getTitle(), result.get(0).getTitle());
+            verify(todoListRepository).findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(TestFixtures.TEST_USER_ID);
+            verify(noteRepository).findAllByListIdInAndDeletedAtIsNull(Arrays.asList(testList.getId()));
+            verify(todoListMapper).toResponse(testList, notes);
+        }
+
+        @Test
+        @DisplayName("Should return empty list when no lists found")
+        void shouldReturnEmptyListWhenNoListsFound() {
+            when(todoListRepository.findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(TestFixtures.TEST_USER_ID))
+                    .thenReturn(Collections.emptyList());
+
+            List<TodoListResponse> result = todoListService.getLists(TestFixtures.TEST_USER_ID);
+
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verify(todoListRepository).findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(TestFixtures.TEST_USER_ID);
+            // Verify that note repository is not called when no lists exist
+            verify(noteRepository, never()).findAllByListIdInAndDeletedAtIsNull(any());
+            verify(todoListMapper, never()).toResponse(any(TodoList.class), any());
         }
     }
 
@@ -118,11 +154,11 @@ class TodoListServiceTest {
             when(noteRepository.findAllByListIdAndDeletedAtIsNull(TestFixtures.TEST_LIST_ID))
                     .thenReturn(existingNotes);
             when(todoListRepository.save(any(TodoList.class))).thenReturn(existingList);
-            when(noteRepository.saveAll(any())).thenReturn(existingNotes);
+            when(noteRepository.saveAll(anyList())).thenReturn(existingNotes);
 
             assertDoesNotThrow(() -> todoListService.deleteList(TestFixtures.TEST_LIST_ID, TestFixtures.TEST_USER_ID));
             verify(todoListRepository).save(any(TodoList.class));
-            verify(noteRepository).saveAll(any());
+            verify(noteRepository).saveAll(anyList());
         }
 
         @Test

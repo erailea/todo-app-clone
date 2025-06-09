@@ -8,8 +8,8 @@ import java.util.List;
 
 @Repository
 public interface TodoListRepository extends CouchbaseRepository<TodoList, String> {
-    @Query("#{#n1ql.selectEntity} WHERE userId = $1 AND (deletedAt IS MISSING OR deletedAt IS NULL)")
-    List<TodoList> findAllByUserIdAndDeletedAtIsNull(String userId);
+    @Query("#{#n1ql.selectEntity} WHERE userId = $1 AND (deletedAt IS MISSING OR deletedAt IS NULL) ORDER BY createdAt DESC")
+    List<TodoList> findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(String userId);
 
     @Query("SELECT COUNT(1) FROM #{#n1ql.bucket} " +
             "WHERE meta().id = $1 AND userId = $2 AND (deletedAt IS NULL OR deletedAt IS MISSING)")

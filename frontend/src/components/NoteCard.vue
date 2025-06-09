@@ -26,7 +26,7 @@
         </svg>
       </button>
       
-      <button @click="deleteNote" class="delete-btn" title="Delete Note">
+      <button @click="deleteNoteAction" class="delete-btn" title="Delete Note">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3,6 5,6 21,6"/>
           <path d="M19,6V20a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6M8,6V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2V6"/>
@@ -41,7 +41,7 @@
           <h3>Edit Note</h3>
           <button @click="closeEditModal" class="close-btn">×</button>
         </div>
-        <form @submit.prevent="updateNote" class="modal-form">
+        <form @submit.prevent="updateNoteContent" class="modal-form">
           <textarea
             v-model="editContent"
             placeholder="Enter note content..."
@@ -49,6 +49,12 @@
             rows="3"
             autofocus
           ></textarea>
+          <input
+            v-model="editDueDate"
+            type="date"
+            class="date-input"
+            placeholder="Due date (optional)"
+          />
           <div class="modal-actions">
             <button type="button" @click="closeEditModal" class="cancel-btn">
               Cancel
@@ -64,7 +70,7 @@
 </template>
 
 <script>
-import axios from 'axios'
+import { mapActions } from 'vuex'
 
 export default {
   name: 'NoteCard',
@@ -77,14 +83,20 @@ export default {
   data() {
     return {
       showEditModal: false,
-      editContent: ''
+      editContent: '',
+      editDueDate: ''
     }
   },
   methods: {
+    ...mapActions(['updateNote', 'deleteNote']),
+    
     async toggleDone() {
       try {
-        await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notes/${this.note.id}`, {
-          done: !this.note.done
+        await this.updateNote({
+          noteId: this.note.id,
+          noteData: {
+            done: !this.note.done
+          }
         })
         this.$emit('updated')
       } catch (error) {
@@ -95,20 +107,26 @@ export default {
     
     editNote() {
       this.editContent = this.note.content
+      this.editDueDate = this.note.dueDate ? this.note.dueDate.split('T')[0] : ''
       this.showEditModal = true
     },
     
     closeEditModal() {
       this.showEditModal = false
       this.editContent = ''
+      this.editDueDate = ''
     },
     
-    async updateNote() {
+    async updateNoteContent() {
       if (!this.editContent.trim()) return
       
       try {
-        await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notes/${this.note.id}`, {
-          content: this.editContent.trim()
+        await this.updateNote({
+          noteId: this.note.id,
+          noteData: {
+            content: this.editContent.trim(),
+            dueDate: this.editDueDate ? new Date(this.editDueDate).toISOString() : null
+          }
         })
         this.closeEditModal()
         this.$emit('updated')
@@ -118,13 +136,16 @@ export default {
       }
     },
     
-    async deleteNote() {
+    async deleteNoteAction() {
       if (!confirm('Are you sure you want to delete this note?')) {
         return
       }
       
       try {
-        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/notes/${this.note.id}`)
+        await this.deleteNote({
+          noteId: this.note.id,
+          listId: this.note.listId
+        })
         this.$emit('deleted')
       } catch (error) {
         console.error('Error deleting note:', error)
@@ -376,5 +397,21 @@ export default {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+.date-input {
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 40px;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 </style> 
