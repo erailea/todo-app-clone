@@ -49,6 +49,7 @@
 
 <script>
 import { mapActions } from 'vuex'
+import { handleApiError } from '../utils/error'
 
 export default {
   name: 'Login',
@@ -75,7 +76,7 @@ export default {
         this.$router.push('/dashboard')
       } catch (error) {
         console.error('Login error:', error)
-        this.error = error.response?.data?.message || 'Login failed. Please try again.'
+        this.error = handleApiError(error)
       } finally {
         this.loading = false
       }

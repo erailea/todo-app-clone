@@ -116,6 +116,7 @@ import { mapGetters, mapActions } from 'vuex'
 import axios from 'axios'
 import draggable from 'vuedraggable'
 import NoteCard from './NoteCard.vue'
+import { handleApiError } from '../utils/error'
 
 export default {
   name: 'TodoListPanel',
@@ -200,7 +201,7 @@ export default {
             console.error('Error moving note:', error)
             
             // Show error message
-            alert('Failed to move note. Please try again.')
+            alert(handleApiError(error))
             
             this.$emit('note-moved', { 
               note, 
@@ -234,7 +235,7 @@ export default {
         this.showAddNote = false
       } catch (error) {
         console.error('Error adding note:', error)
-        alert('Failed to add note. Please try again.')
+        alert(handleApiError(error))
       } finally {
         this.loading.addNote = false
       }
@@ -261,7 +262,7 @@ export default {
         this.$emit('refresh')
       } catch (error) {
         console.error('Error deleting list:', error)
-        alert('Failed to delete list. Please try again.')
+        alert(handleApiError(error))
       } finally {
         this.loading.deleteList = false
       }
@@ -289,7 +290,7 @@ export default {
         this.editingTitle = false
       } catch (error) {
         console.error('Error updating list title:', error)
-        alert('Failed to update list title. Please try again.')
+        alert(handleApiError(error))
         this.cancelEditTitle()
       } finally {
         this.loading.updateTitle = false

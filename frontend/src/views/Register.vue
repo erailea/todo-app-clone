@@ -61,6 +61,7 @@
 
 <script>
 import { mapActions } from 'vuex'
+import { handleApiError } from '../utils/error'
 
 export default {
   name: 'Register',
@@ -88,7 +89,7 @@ export default {
         this.$router.push('/dashboard')
       } catch (error) {
         console.error('Register error:', error)
-        this.error = error.response?.data?.message || 'Registration failed. Please try again.'
+        this.error = handleApiError(error)
       } finally {
         this.loading = false
       }
