@@ -32,7 +32,9 @@ jobs:
 
       - name: Build Docker image for Heroku
         run: |
+          # Build with API URL from GitHub secrets
           docker build --platform linux/amd64 \
+            --build-arg VITE_API_BASE_URL="${{ secrets.VITE_API_BASE_URL }}" \
             -t registry.heroku.com/to-do-app-clone-fe/web ./frontend
 
       - name: Push image to Heroku
@@ -42,7 +44,7 @@ jobs:
       - name: Set Heroku environment variables
         run: |
           curl -n -X PATCH https://api.heroku.com/apps/to-do-app-clone-fe/config-vars \
-            -d '{"API_BASE_URL":"https://to-do-app-clone-be-ff03bad65820.herokuapp.com"}' \
+            -d '{"VITE_API_BASE_URL":"${{ secrets.VITE_API_BASE_URL }}"}' \
             -H "Content-Type: application/json" \
             -H "Accept: application/vnd.heroku+json; version=3" \
             -H "Authorization: Bearer ${{ secrets.HEROKU_API_KEY }}"

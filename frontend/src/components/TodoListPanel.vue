@@ -87,7 +87,7 @@ export default {
     async loadNotes() {
       this.loading = true
       try {
-        const response = await axios.get(`http://localhost:8080/lists/${this.list.id}/notes`)
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/lists/${this.list.id}/notes`)
         this.notes = response.data
       } catch (error) {
         console.error('Error loading notes:', error)
@@ -101,7 +101,7 @@ export default {
       if (!this.newNoteContent.trim()) return
       
       try {
-        await axios.post(`http://localhost:8080/lists/${this.list.id}/notes`, {
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/lists/${this.list.id}/notes`, {
           content: this.newNoteContent.trim()
         })
         
@@ -125,7 +125,7 @@ export default {
       }
       
       try {
-        await axios.delete(`http://localhost:8080/lists/${this.list.id}`)
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/lists/${this.list.id}`)
         this.$emit('refresh')
       } catch (error) {
         console.error('Error deleting list:', error)

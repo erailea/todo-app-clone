@@ -62,6 +62,7 @@ export default {
     ...mapActions(['login']),
     
     async handleLogin() {
+      console.log('Login attempt with API URL:', import.meta.env.VITE_API_BASE_URL)
       this.loading = true
       this.error = null
       
@@ -75,6 +76,9 @@ export default {
         this.loading = false
       }
     }
+  },
+  mounted() {
+    console.log('Login component mounted. API URL:', import.meta.env.VITE_API_BASE_URL)
   }
 }
 </script>

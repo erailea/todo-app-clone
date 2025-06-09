@@ -13,10 +13,13 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       target: env.VITE_BUILD_TARGET || 'esnext',
-      outDir: env.VITE_BUILD_OUTDIR || 'dist'
-    },
-    define: {
-      __API_BASE_URL__: JSON.stringify(env.VITE_API_BASE_URL || 'http://localhost:8080')
+      outDir: env.VITE_BUILD_OUTDIR || 'dist',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined
+        }
+      }
     }
   }
 }) 

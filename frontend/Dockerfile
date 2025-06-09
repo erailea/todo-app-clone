@@ -1,13 +1,23 @@
 # 🏗️ Build stage
-FROM node:20-alpine AS build
+FROM node:23-alpine AS build
 
 WORKDIR /app
 
+# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm ci 
 
+# Copy source code
 COPY . .
-ENV VITE_API_BASE_URL=https://api.example.com
+
+# Set build argument and environment variable for API URL
+ARG VITE_API_BASE_URL=
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
+# Set environment variable for production build
+ENV NODE_ENV=production
+
+# Build the application
 RUN npm run build
 
 # 🚀 Production stage (serve with nginx)
@@ -17,7 +27,7 @@ FROM nginx:alpine
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Static build output
+# Copy built app from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy nginx config template and startup script

@@ -2,11 +2,11 @@
 
 # Set default values
 export PORT=${PORT:-80}
-export API_BASE_URL=${API_BASE_URL:-https://api.example.com}
+export VITE_API_BASE_URL=${VITE_API_BASE_URL:-https://api.example.com}
 
 echo "Starting application with:"
 echo "PORT: $PORT"
-echo "API_BASE_URL: $API_BASE_URL"
+echo "VITE_API_BASE_URL: $VITE_API_BASE_URL"
 
 # Create temporary directories for non-root user
 mkdir -p /tmp/client_temp
@@ -17,8 +17,8 @@ mkdir -p /tmp/scgi_temp
 
 # Replace API URL placeholders in built files
 echo "Injecting environment variables into built application..."
-find /usr/share/nginx/html -name "*.js" -exec sed -i "s|https://api.example.com|$API_BASE_URL|g" {} \;
-find /usr/share/nginx/html -name "*.html" -exec sed -i "s|https://api.example.com|$API_BASE_URL|g" {} \;
+find /usr/share/nginx/html -name "*.js" -exec sed -i "s|https://api.example.com|$VITE_API_BASE_URL|g" {} \;
+find /usr/share/nginx/html -name "*.html" -exec sed -i "s|https://api.example.com|$VITE_API_BASE_URL|g" {} \;
 
 # Replace PORT placeholder in nginx config
 echo "Generating nginx configuration..."

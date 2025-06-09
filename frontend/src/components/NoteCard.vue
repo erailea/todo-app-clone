@@ -83,7 +83,7 @@ export default {
   methods: {
     async toggleDone() {
       try {
-        await axios.patch(`http://localhost:8080/notes/${this.note.id}`, {
+        await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notes/${this.note.id}`, {
           done: !this.note.done
         })
         this.$emit('updated')
@@ -107,7 +107,7 @@ export default {
       if (!this.editContent.trim()) return
       
       try {
-        await axios.patch(`http://localhost:8080/notes/${this.note.id}`, {
+        await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/notes/${this.note.id}`, {
           content: this.editContent.trim()
         })
         this.closeEditModal()
@@ -124,7 +124,7 @@ export default {
       }
       
       try {
-        await axios.delete(`http://localhost:8080/notes/${this.note.id}`)
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/notes/${this.note.id}`)
         this.$emit('deleted')
       } catch (error) {
         console.error('Error deleting note:', error)

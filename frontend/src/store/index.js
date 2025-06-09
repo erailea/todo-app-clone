@@ -2,9 +2,6 @@ import { createStore } from 'vuex'
 import axios from 'axios'
 import { getToken, setToken, removeToken } from '../utils/auth'
 
-// Get API base URL from runtime config or fallback to environment variable
-const API_BASE_URL = window.__APP_CONFIG__?.API_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-
 // Setup axios default authorization header
 const token = getToken()
 if (token) {
@@ -61,7 +58,7 @@ export default createStore({
   actions: {
     async login({ commit }, credentials) {
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/authenticate`, credentials)
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/authenticate`, credentials)
         const { token } = response.data
         
         commit('SET_TOKEN', token)
@@ -75,7 +72,7 @@ export default createStore({
     
     async register({ commit }, userData) {
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/register`, userData)
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/auth/register`, userData)
         const { token } = response.data
         
         commit('SET_TOKEN', token)
@@ -89,7 +86,7 @@ export default createStore({
     
     async fetchUser({ commit }) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/user/me`)
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/user/me`)
         commit('SET_USER', response.data)
         return response.data
       } catch (error) {
@@ -100,7 +97,7 @@ export default createStore({
     
     async fetchTodoLists({ commit }) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/lists`)
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/lists`)
         commit('SET_TODO_LISTS', response.data)
         return response.data
       } catch (error) {
@@ -110,7 +107,7 @@ export default createStore({
     
     async createTodoList({ commit }, title) {
       try {
-        const response = await axios.post(`${API_BASE_URL}/lists`, { title })
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/lists`, { title })
         commit('ADD_TODO_LIST', response.data)
         return response.data
       } catch (error) {

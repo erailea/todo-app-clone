@@ -108,38 +108,6 @@ npm run dev
 
 ## Deployment
 
-### Heroku Deployment
-
-#### Frontend Deployment (Docker)
-
-The frontend is deployed using Docker containers for better flexibility and consistency.
-
-**Key Features:**
-- **Runtime Environment Configuration**: Same Docker image can be used across different environments
-- **Multi-stage Build**: Optimized production build with Nginx
-- **Dynamic Configuration**: API URL can be set at runtime via environment variables
-
-**Environment Variables:**
-```bash
-# Set API URL at runtime
-heroku config:set API_BASE_URL=https://your-backend-url.herokuapp.com
-
-# Optional: Set custom port (Heroku sets this automatically)
-heroku config:set PORT=8080
-```
-
-**Local Docker Development:**
-```bash
-# Build the Docker image
-docker build -t todo-frontend ./frontend
-
-# Run with custom API URL
-docker run -p 3000:80 -e API_BASE_URL=http://localhost:8080 todo-frontend
-
-# Run with different environment
-docker run -p 3000:80 -e API_BASE_URL=https://staging-api.example.com todo-frontend
-```
-
 #### Backend Deployment
 The backend is already deployed at: https://to-do-app-clone-be-ff03bad65820.herokuapp.com/
 
@@ -230,7 +198,7 @@ View the detailed code coverage report at: https://erailea.github.io/todo-app-cl
 ## Live Demo
 
 - Backend API: https://to-do-app-clone-be-ff03bad65820.herokuapp.com/swagger-ui/index.html
-- Frontend (coming soon): TBD
+- Frontend: https://to-do-app-clone-fe-9426774d4821.herokuapp.com/login
 
 ## Troubleshooting
 
@@ -250,7 +218,7 @@ View the detailed code coverage report at: https://erailea.github.io/todo-app-cl
    - Check if ports are not in use
    - Verify Docker Compose installation
 
-4. **Frontend API Connection Issues**
+4. **Login not working**: 
    - Verify VITE_API_BASE_URL is correct
    - Check if backend is running
-   - Ensure CORS is properly configured
+   - Verify network connectivity between frontend and backend
