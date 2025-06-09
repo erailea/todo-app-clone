@@ -46,6 +46,31 @@ For more detailed information about each component, please refer to:
 - [Backend Documentation](backend/README.md)
 - [Frontend Documentation](frontend/README.md)
 
+## Future Improvements
+
+### Backend
+#### High Priority
+- Add structured logging
+- Implement Redis caching for frequently accessed data
+- Add SonarQube for code quality and security
+
+#### Medium Priority
+- Implement API versioning strategy
+- Add HATEOAS support with generic response wrapper
+- Add health check endpoints with Spring Actuator
+- Implement performance benchmarking
+- Add rate limiting
+
+### Frontend
+#### High Priority
+- Implement lazy loading for routes
+- Add error boundary components
+- Implement client-side caching
+
+#### Medium Priority
+- Add performance monitoring
+- Implement progressive web app features
+
 [frontend-url]: https://to-do-app-clone-fe-9426774d4821.herokuapp.com/dashboard
 [swagger-url]: https://to-do-app-clone-be-ff03bad65820.herokuapp.com/swagger-ui/index.html
 [api-url]: https://to-do-app-clone-be-ff03bad65820.herokuapp.com
