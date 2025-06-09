@@ -1,12 +1,24 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <div class="login-header">
+  <div class="register-container">
+    <div class="register-card">
+      <div class="register-header">
         <h1>Todo App</h1>
-        <p>Sign in to your account</p>
+        <p>Create your account</p>
       </div>
       
-      <form @submit.prevent="handleLogin" class="login-form">
+      <form @submit.prevent="handleRegister" class="register-form">
+        <div class="form-group">
+          <label for="fullName">Full Name</label>
+          <input
+            id="fullName"
+            v-model="form.fullName"
+            type="text"
+            placeholder="Enter your full name"
+            required
+            :disabled="loading"
+          />
+        </div>
+        
         <div class="form-group">
           <label for="email">Email</label>
           <input
@@ -35,13 +47,13 @@
           {{ error }}
         </div>
         
-        <button type="submit" class="login-button" :disabled="loading">
-          {{ loading ? 'Signing in...' : 'Sign In' }}
+        <button type="submit" class="register-button" :disabled="loading">
+          {{ loading ? 'Creating account...' : 'Sign Up' }}
         </button>
       </form>
       
-      <div class="register-link">
-        <p>Don't have an account? <router-link to="/register">Sign up</router-link></p>
+      <div class="login-link">
+        <p>Already have an account? <router-link to="/login">Sign in</router-link></p>
       </div>
     </div>
   </div>
@@ -51,10 +63,11 @@
 import { mapActions } from 'vuex'
 
 export default {
-  name: 'Login',
+  name: 'Register',
   data() {
     return {
       form: {
+        fullName: '',
         email: '',
         password: ''
       },
@@ -63,32 +76,32 @@ export default {
     }
   },
   methods: {
-    ...mapActions(['login']),
+    ...mapActions(['register']),
     
-    async handleLogin() {
-      console.log('Login attempt with API URL:', import.meta.env.VITE_API_BASE_URL)
+    async handleRegister() {
+      console.log('Register attempt with API URL:', import.meta.env.VITE_API_BASE_URL)
       this.loading = true
       this.error = null
       
       try {
-        await this.login(this.form)
+        await this.register(this.form)
         this.$router.push('/dashboard')
       } catch (error) {
-        console.error('Login error:', error)
-        this.error = error.response?.data?.message || 'Login failed. Please try again.'
+        console.error('Register error:', error)
+        this.error = error.response?.data?.message || 'Registration failed. Please try again.'
       } finally {
         this.loading = false
       }
     }
   },
   mounted() {
-    console.log('Login component mounted. API URL:', import.meta.env.VITE_API_BASE_URL)
+    console.log('Register component mounted. API URL:', import.meta.env.VITE_API_BASE_URL)
   }
 }
 </script>
 
 <style scoped>
-.login-container {
+.register-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -97,7 +110,7 @@ export default {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.login-card {
+.register-card {
   background: white;
   padding: 2rem;
   border-radius: 16px;
@@ -106,24 +119,24 @@ export default {
   max-width: 400px;
 }
 
-.login-header {
+.register-header {
   text-align: center;
   margin-bottom: 2rem;
 }
 
-.login-header h1 {
+.register-header h1 {
   font-size: 2rem;
   font-weight: 700;
   color: #1a202c;
   margin-bottom: 0.5rem;
 }
 
-.login-header p {
+.register-header p {
   color: #718096;
   font-size: 0.875rem;
 }
 
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -170,7 +183,7 @@ export default {
   border-radius: 8px;
 }
 
-.login-button {
+.register-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
@@ -182,45 +195,45 @@ export default {
   transition: all 0.2s;
 }
 
-.login-button:hover:not(:disabled) {
+.register-button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-.login-button:disabled {
+.register-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
 
-.register-link {
+.login-link {
   text-align: center;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
 }
 
-.register-link p {
+.login-link p {
   color: #6b7280;
   font-size: 0.875rem;
 }
 
-.register-link a {
+.login-link a {
   color: #667eea;
   text-decoration: none;
   font-weight: 500;
 }
 
-.register-link a:hover {
+.login-link a:hover {
   text-decoration: underline;
 }
 
 @media (max-width: 480px) {
-  .login-card {
+  .register-card {
     padding: 1.5rem;
   }
   
-  .login-header h1 {
+  .register-header h1 {
     font-size: 1.5rem;
   }
 }

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 import Dashboard from '../views/Dashboard.vue'
 import { isAuthenticated } from '../utils/auth'
 
@@ -12,6 +13,18 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: Login,
+    beforeEnter: (to, from, next) => {
+      if (isAuthenticated()) {
+        next('/dashboard')
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register,
     beforeEnter: (to, from, next) => {
       if (isAuthenticated()) {
         next('/dashboard')
