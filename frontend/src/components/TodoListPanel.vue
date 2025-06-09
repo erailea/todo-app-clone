@@ -20,19 +20,23 @@
           autofocus
         />
         <div class="title-edit-actions">
-          <button @click="saveTitle" class="save-title-btn" title="Save">✓</button>
-          <button @click="cancelEditTitle" class="cancel-title-btn" title="Cancel">✕</button>
+          <button @click="saveTitle" class="save-title-btn" title="Save" :disabled="loading.updateTitle">
+            <div v-if="loading.updateTitle" class="loading-spinner small"></div>
+            <span v-else>✓</span>
+          </button>
+          <button @click="cancelEditTitle" class="cancel-title-btn" title="Cancel" :disabled="loading.updateTitle">✕</button>
         </div>
       </div>
       <div class="panel-actions">
-        <button @click="showAddNote = true" class="add-note-btn" title="Add Note">
+        <button @click="showAddNote = true" class="add-note-btn" title="Add Note" :disabled="anyLoading">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
         </button>
-        <button @click="deleteList" class="delete-btn" title="Delete List">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button @click="deleteList" class="delete-btn" title="Delete List" :disabled="anyLoading">
+          <div v-if="loading.deleteList" class="loading-spinner"></div>
+          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3,6 5,6 21,6"/>
             <path d="M19,6V20a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6M8,6V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2V6"/>
           </svg>
@@ -41,7 +45,7 @@
     </div>
 
     <div class="notes-container">
-      <div v-if="loading" class="loading">
+      <div v-if="loading.notes" class="loading">
         Loading notes...
       </div>
       
@@ -96,8 +100,11 @@
           placeholder="Due date (optional)"
         />
         <div class="form-actions">
-          <button type="button" @click="cancelAddNote" class="cancel-btn">Cancel</button>
-          <button type="submit" class="add-btn" :disabled="!newNoteContent.trim()">Add</button>
+          <button type="button" @click="cancelAddNote" class="cancel-btn" :disabled="loading.addNote">Cancel</button>
+          <button type="submit" class="add-btn" :disabled="!newNoteContent.trim() || loading.addNote">
+            <div v-if="loading.addNote" class="loading-spinner small"></div>
+            <span v-else>Add</span>
+          </button>
         </div>
       </form>
     </div>
@@ -124,7 +131,12 @@ export default {
   },
   data() {
     return {
-      loading: false,
+      loading: {
+        notes: false,
+        addNote: false,
+        updateTitle: false,
+        deleteList: false
+      },
       showAddNote: false,
       newNoteContent: '',
       newNoteDueDate: '',
@@ -146,6 +158,9 @@ export default {
       set(value) {
         // This will be handled by drag events
       }
+    },
+    anyLoading() {
+      return this.loading.notes || this.loading.addNote || this.loading.updateTitle || this.loading.deleteList
     }
   },
   methods: {
@@ -202,8 +217,9 @@ export default {
     },
     
     async addNote() {
-      if (!this.newNoteContent.trim()) return
+      if (!this.newNoteContent.trim() || this.loading.addNote) return
       
+      this.loading.addNote = true
       try {
         await this.createNote({
           listId: this.list.id,
@@ -219,40 +235,52 @@ export default {
       } catch (error) {
         console.error('Error adding note:', error)
         alert('Failed to add note. Please try again.')
+      } finally {
+        this.loading.addNote = false
       }
     },
     
     cancelAddNote() {
+      if (this.loading.addNote) return
+      
       this.showAddNote = false
       this.newNoteContent = ''
       this.newNoteDueDate = ''
     },
     
     async deleteList() {
+      if (this.loading.deleteList) return
+      
       if (!confirm(`Are you sure you want to delete "${this.list.title}"? This action cannot be undone.`)) {
         return
       }
       
+      this.loading.deleteList = true
       try {
         await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/lists/${this.list.id}`)
         this.$emit('refresh')
       } catch (error) {
         console.error('Error deleting list:', error)
         alert('Failed to delete list. Please try again.')
+      } finally {
+        this.loading.deleteList = false
       }
     },
     
     startEditTitle() {
+      if (this.anyLoading) return
+      
       this.editingTitle = true
       this.editTitleValue = this.list.title
     },
     
     async saveTitle() {
-      if (!this.editTitleValue.trim()) {
+      if (!this.editTitleValue.trim() || this.loading.updateTitle) {
         this.cancelEditTitle()
         return
       }
       
+      this.loading.updateTitle = true
       try {
         await this.updateTodoList({
           id: this.list.id,
@@ -263,11 +291,14 @@ export default {
         console.error('Error updating list title:', error)
         alert('Failed to update list title. Please try again.')
         this.cancelEditTitle()
+      } finally {
+        this.loading.updateTitle = false
       }
     },
     
     cancelEditTitle() {
       this.editingTitle = false
+      this.loading.updateTitle = false
     },
 
     handleNoteUpdated() {
@@ -613,5 +644,35 @@ export default {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #cbd5e0;
+  border-top: 2px solid #48bb78;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner.small {
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+}
+
+.add-note-btn:disabled,
+.delete-btn:disabled,
+.save-title-btn:disabled,
+.cancel-title-btn:disabled,
+.add-btn:disabled,
+.cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style> 

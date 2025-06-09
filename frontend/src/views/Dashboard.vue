@@ -70,11 +70,12 @@
             autofocus
           />
           <div class="modal-actions">
-            <button type="button" @click="showCreateModal = false" class="cancel-btn">
+            <button type="button" @click="showCreateModal = false" class="cancel-btn" :disabled="createLoading">
               Cancel
             </button>
-            <button type="submit" class="submit-btn" :disabled="!newListTitle.trim()">
-              Create
+            <button type="submit" class="submit-btn" :disabled="!newListTitle.trim() || createLoading">
+              <div v-if="createLoading" class="loading-spinner"></div>
+              <span v-else>Create</span>
             </button>
           </div>
         </form>
@@ -95,6 +96,7 @@ export default {
   data() {
     return {
       loading: true,
+      createLoading: false,
       showCreateModal: false,
       newListTitle: ''
     }
@@ -117,8 +119,9 @@ export default {
     },
     
     async createList() {
-      if (!this.newListTitle.trim()) return
+      if (!this.newListTitle.trim() || this.createLoading) return
       
+      this.createLoading = true
       try {
         await this.createTodoList(this.newListTitle.trim())
         this.showCreateModal = false
@@ -126,6 +129,8 @@ export default {
       } catch (error) {
         console.error('Error creating list:', error)
         alert('Failed to create list. Please try again.')
+      } finally {
+        this.createLoading = false
       }
     },
     
@@ -365,6 +370,20 @@ export default {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (max-width: 768px) {

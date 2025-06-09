@@ -17,9 +17,10 @@
       </svg>
     </div>
     
-    <div class="note-content" @click="toggleDone">
+    <div class="note-content" @click="toggleDone" :class="{ 'loading': loading.toggle }">
       <div class="note-checkbox">
-        <div v-if="note.done" class="checkmark">
+        <div v-if="loading.toggle" class="loading-spinner small"></div>
+        <div v-else-if="note.done" class="checkmark">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="20,6 9,17 4,12"/>
           </svg>
@@ -40,15 +41,17 @@
     </div>
     
     <div class="note-actions">
-      <button @click="editNote" class="edit-btn" title="Edit Note">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button @click="editNote" class="edit-btn" title="Edit Note" :disabled="anyLoading">
+        <div v-if="loading.update" class="loading-spinner"></div>
+        <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </button>
       
-      <button @click="deleteNoteAction" class="delete-btn" title="Delete Note">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button @click="deleteNoteAction" class="delete-btn" title="Delete Note" :disabled="anyLoading">
+        <div v-if="loading.delete" class="loading-spinner"></div>
+        <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3,6 5,6 21,6"/>
           <path d="M19,6V20a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6M8,6V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2V6"/>
         </svg>
@@ -77,11 +80,12 @@
             placeholder="Due date (optional)"
           />
           <div class="modal-actions">
-            <button type="button" @click="closeEditModal" class="cancel-btn">
+            <button type="button" @click="closeEditModal" class="cancel-btn" :disabled="loading.update">
               Cancel
             </button>
-            <button type="submit" class="save-btn" :disabled="!editContent.trim()">
-              Save
+            <button type="submit" class="save-btn" :disabled="!editContent.trim() || loading.update">
+              <div v-if="loading.update" class="loading-spinner small"></div>
+              <span v-else>Save</span>
             </button>
           </div>
         </form>
@@ -105,7 +109,12 @@ export default {
     return {
       showEditModal: false,
       editContent: '',
-      editDueDate: ''
+      editDueDate: '',
+      loading: {
+        update: false,
+        delete: false,
+        toggle: false
+      }
     }
   },
   computed: {
@@ -118,12 +127,18 @@ export default {
       if (!this.note.dueDate) return false
       const today = new Date().toISOString().split('T')[0]
       return new Date(this.note.dueDate.split('T')[0]) < new Date(today)
+    },
+    anyLoading() {
+      return this.loading.update || this.loading.delete || this.loading.toggle
     }
   },
   methods: {
     ...mapActions(['updateNote', 'deleteNote']),
     
     async toggleDone() {
+      if (this.loading.toggle) return
+      
+      this.loading.toggle = true
       try {
         await this.updateNote({
           noteId: this.note.id,
@@ -135,10 +150,14 @@ export default {
       } catch (error) {
         console.error('Error updating note:', error)
         alert('Failed to update note. Please try again.')
+      } finally {
+        this.loading.toggle = false
       }
     },
     
     editNote() {
+      if (this.anyLoading) return
+      
       this.editContent = this.note.content
       this.editDueDate = this.note.dueDate ? this.note.dueDate.split('T')[0] : ''
       this.showEditModal = true
@@ -149,12 +168,14 @@ export default {
       this.showEditModal = false
       this.editContent = ''
       this.editDueDate = ''
+      this.loading.update = false
       this.$emit('modal-closed')
     },
     
     async updateNoteContent() {
-      if (!this.editContent.trim()) return
+      if (!this.editContent.trim() || this.loading.update) return
       
+      this.loading.update = true
       try {
         await this.updateNote({
           noteId: this.note.id,
@@ -168,14 +189,19 @@ export default {
       } catch (error) {
         console.error('Error updating note:', error)
         alert('Failed to update note. Please try again.')
+      } finally {
+        this.loading.update = false
       }
     },
     
     async deleteNoteAction() {
+      if (this.loading.delete) return
+      
       if (!confirm('Are you sure you want to delete this note?')) {
         return
       }
       
+      this.loading.delete = true
       try {
         await this.deleteNote({
           noteId: this.note.id,
@@ -185,6 +211,8 @@ export default {
       } catch (error) {
         console.error('Error deleting note:', error)
         alert('Failed to delete note. Please try again.')
+      } finally {
+        this.loading.delete = false
       }
     },
     
@@ -277,6 +305,11 @@ export default {
   flex: 1;
   min-width: 0;
   cursor: pointer;
+}
+
+.note-content.loading {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .note-checkbox {
@@ -385,6 +418,12 @@ export default {
 .delete-btn:hover {
   background: #fee2e2;
   color: #b91c1c;
+}
+
+.edit-btn:disabled,
+.delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .modal-overlay {
@@ -511,5 +550,25 @@ export default {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #cbd5e0;
+  border-top: 2px solid #48bb78;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner.small {
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style> 
